@@ -249,7 +249,8 @@ add_monster(maze, mainpath)
 for i in range(lungime):
     if maze[i][0]==' ':
         i_start=i
-def play(maze,direction):
+def play(maze,direction,client_socket):
+    
     i, j = i_start,0
     maze[i][j] = '*'
     counter=0
@@ -310,13 +311,15 @@ def play(maze,direction):
 
 def receive_data(client_socket):
     return client_socket.recv(1024).decode('utf-8')
-
+    
 def send_data(client_socket, data):
     client_socket.send(data.encode('utf-8'))
-
+    
 # Create a socket object
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+
+"""
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Define the server address and port
 host = socket.gethostbyname("localhost")
 port = 6789
@@ -338,8 +341,8 @@ user_input = input("Press any key to start!\n")
 play(maze, user_input)
 
 if user_input.lower() == 'exit':
-    client_socket.close()
-
+    client_socket.close()"""
+""
 # Close the connection with the server
 
 

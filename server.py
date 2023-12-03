@@ -1,5 +1,6 @@
 import socket
 import os
+
 #import maze  # Assuming you have a module named 'maze'
 def receive_data(client_socket):
     return client_socket.recv(1024).decode('utf-8')
@@ -35,3 +36,4 @@ while True:
         # Process the received data (assuming it's coordinates)
         coordinates = data_from_client
         print(f"Message recieved from {addr}: {coordinates}")
+        
