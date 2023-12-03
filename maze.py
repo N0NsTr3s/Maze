@@ -1,5 +1,6 @@
 import random
 import os
+import socket
 #Generateing and printing the maze
 latime=28
 lungime=28
@@ -248,16 +249,20 @@ add_monster(maze, mainpath)
 for i in range(lungime):
     if maze[i][0]==' ':
         i_start=i
-def play(maze):
+def play(maze,direction):
     i, j = i_start,0
     maze[i][j] = '*'
-
+    counter=0
     while True:
+        coordonate=f"{i},{j}"
+        client_socket.send(coordonate.encode('utf-8'))
         os.system("clear")  # clear the terminal
         print_maze(maze)
 
         if i == i_stop and j == j_stop:
             print("You won!")
+            send_data(client_socket,f"It took you {counter} steps to win")
+            print_maze(maze)
             return
 
         maze[i][j] = '*'
@@ -268,18 +273,22 @@ def play(maze):
             maze[i][j]=' '
             i -= 1
             maze[i][j]="*"
+            counter+=1
         elif direction == "d" and maze[i+1][j] == " " :
             maze[i][j]=' '
             i += 1
             maze[i][j]="*"
+            counter+=1
         elif direction == "l" and maze[i][j-1] == " ":
             maze[i][j]=' '
             j -= 1
             maze[i][j]="*"
+            counter+=1
         elif direction == "r" and maze[i][j+1] == " ":
             maze[i][j]=' '
             j += 1
             maze[i][j]="*"
+            counter+=1
         elif direction == "u" and maze[i-1][j] == "M":
             print("You`ve died")
             break
@@ -294,9 +303,45 @@ def play(maze):
             break
         elif direction=="Yes":
             solve_maze(maze,i,j,i_stop,j_stop)
+            print_maze(maze)
             break
         
-        
 
-play(maze)
-print_maze(maze)
+
+def receive_data(client_socket):
+    return client_socket.recv(1024).decode('utf-8')
+
+def send_data(client_socket, data):
+    client_socket.send(data.encode('utf-8'))
+
+# Create a socket object
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Define the server address and port
+host = socket.gethostbyname("localhost")
+port = 6789
+
+# Connect to the server
+client_socket.connect((host, port))
+
+# Receive the welcome message from the server
+welcome_message = receive_data(client_socket)
+print(welcome_message)
+
+
+
+
+# Get user input
+user_input = input("Press any key to start!\n")
+
+# Play the game on the client side
+play(maze, user_input)
+
+if user_input.lower() == 'exit':
+    client_socket.close()
+
+# Close the connection with the server
+
+
+#play(maze)
+#print_maze(maze)
