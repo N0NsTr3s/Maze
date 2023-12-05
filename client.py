@@ -1,5 +1,5 @@
 import os
-import maze
+
 import socket
 
 
@@ -25,13 +25,23 @@ welcome_message = receive_data(client_socket)
 print(welcome_message)
 
 
+input("Press Enter to continue...")
+while True:
 
+    # Get user input
+    direction = input("Which direction do you want to move (u/d/l/r)? Or do you give up? (Yes): ")
 
-# Get user input
-user_input = input("Press any key to start!\n")
+    if direction == 'exit':
+        client_socket.close()
 
-# Play the game on the client side
-maze.play(maze.maze, user_input,client_socket)
-
-if user_input.lower() == 'exit':
-    client_socket.close()
+    while direction not in ["u", "d", "l", "r", "Yes"]:
+        print("Invalid direction")
+        direction = input("Which direction do you want to move (u/d/l/r)? Or do you give up? (Yes): ")
+        
+        continue
+    send_data(client_socket, direction)       
+    response = receive_data(client_socket)
+    if "You won!" in response or "Ok!" in response or "A Monster ate you!!" in response or "You`ve hit a wall" in response:
+        print(response)
+    else:
+        pass

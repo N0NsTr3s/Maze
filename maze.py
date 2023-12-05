@@ -25,6 +25,8 @@ def print_maze(maze):
                 row_str+='M'
             elif cell=='*':
                 row_str+='*'
+            elif cell=='.':
+                row_str+='.'
         print(row_str)
 
 def is_too_close(position, maze):
@@ -306,7 +308,104 @@ def play(maze,direction,client_socket):
             solve_maze(maze,i,j,i_stop,j_stop)
             print_maze(maze)
             break
+        send_data(client_socket, f"coordinates ({i},{j})")
+def print_path(maze):
+     for row in maze:
+        row_str = ' '
+        for cell in row:
+            if cell == '█':
+                row_str += ' '
+            elif cell==' ':
+                row_str+=' '
+            elif cell=='.':
+                row_str+='.'
+            elif cell=='*':
+                row_str+='*'
+        print(row_str)
+
+counter = 0
+i, j = i_start, 0
+maze[i][j] = '*'
+def play_hidden(maze,direction, client_socket):
+    global i,j
+    global counter
+
+    while True:
         
+        coordonate = f"{i},{j}"
+        print_path(maze)
+
+        if i == i_stop and j == j_stop:
+            print("You won!")
+            send_data(client_socket, f"It took you {counter} steps to win")
+            print_path(maze)
+            return
+
+       
+
+
+        if direction == "u" and (maze[i - 1][j] == " " or maze[i - 1][j] == "."):
+            maze[i][j] = '.'  # Mark the current position as a valid path
+            i=i-1
+            maze[i][j] = '*'  # Mark the new position with '*'
+            counter += 1
+            send_data(client_socket, f"Ok! {coordonate}")
+            print_path(maze)
+            return
+        elif direction == "d" and (maze[i + 1][j] == " " or maze[i + 1][j] == "."):
+            maze[i][j] = '.'
+            i=i+1
+            maze[i][j] = '*'
+            counter += 1
+            send_data(client_socket, f"Ok! {coordonate}")
+            print_path(maze)
+            return
+        elif direction == "l" and (maze[i][j - 1] == " " or maze[i][j - 1] == "."):
+            maze[i][j] = '.'
+            j=j-1
+            maze[i][j] = '*'
+            counter += 1
+            send_data(client_socket, f"Ok! {coordonate}")
+            print_path(maze)
+            return
+        elif direction == "r" and (maze[i][j + 1] == " " or maze[i][j + 1] == "."):
+            maze[i][j] = '.'
+            j=j+1
+            maze[i][j] = '*'
+            counter += 1
+            send_data(client_socket, f"Ok! {coordonate}")
+            print_path(maze)
+            return
+        elif direction == "u" and maze[i - 1][j] == "M":
+            send_data(client_socket, f"You`ve died {coordonate}")
+            print("You`ve died")
+            break
+        elif direction == "d" and maze[i + 1][j] == "M":
+            send_data(client_socket, f"You`ve died {coordonate}")
+            print("You`ve died")
+            break
+        elif direction == "l" and maze[i][j - 1] == "M":
+            send_data(client_socket, f"You`ve died {coordonate}")
+            print("You`ve died")
+            break
+        elif direction == "r" and maze[i][j + 1] == "M":
+            send_data(client_socket, f"You`ve died {coordonate}")
+            print("You`ve died")
+            break
+        elif direction == "Yes":
+
+            solve_maze(maze, i, j, i_stop, j_stop)
+            print_maze(maze)
+            send_data(client_socket, f"You`ve gave up, coordinates ({i},{j})")
+            break
+        else:
+            send_data(client_socket, f"You`ve hit a wall {coordonate}")
+            print("You`ve hit a wall")
+            print_path(maze)
+            return
+       
+        
+
 
 
 def receive_data(client_socket):
@@ -315,36 +414,32 @@ def receive_data(client_socket):
 def send_data(client_socket, data):
     client_socket.send(data.encode('utf-8'))
     
-# Create a socket object
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-
-"""
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# Define the server address and port
 host = socket.gethostbyname("localhost")
 port = 6789
 
-# Connect to the server
-client_socket.connect((host, port))
-
-# Receive the welcome message from the server
-welcome_message = receive_data(client_socket)
-print(welcome_message)
+server_socket.bind((host, port))
+server_socket.listen(5)
+print(f"Server listening on {host}:{port}")
 
 
 
 
-# Get user input
-user_input = input("Press any key to start!\n")
+while True:
+    client_socket, addr = server_socket.accept()
+    print(f"Got connection from {addr}")
 
-# Play the game on the client side
-play(maze, user_input)
+    # Send a welcome message to the client
+    welcome_message = "Welcome to the maze game server!\n"
+    client_socket.send(welcome_message.encode('utf-8'))
 
-if user_input.lower() == 'exit':
-    client_socket.close()"""
-""
-# Close the connection with the server
-
-
-#play(maze)
-#print_maze(maze)
+    # Receive data from the client in a loop
+    
+    while True:
+        try:
+            direction = receive_data(client_socket)
+            play_hidden(maze, direction, client_socket)
+        except socket.timeout:
+            print("No direction received from the client for 10 seconds. Exiting the loop.")
+            break
